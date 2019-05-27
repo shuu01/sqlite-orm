@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from base import create_session, Base, Field, Integer, String
+from base import create_session, Base
+from field import Field, Integer, String, Relationship
 
-session = create_session('db')
+session = create_session('test.db')
 Base.set_session(session)
 
 print(Integer)
@@ -44,7 +45,22 @@ class Post(Base):
         not_null=False,
     )
 
-#print([field[1].__dict__ for field in User.get_fields()])
-#print([field[1].__dict__ for field in Post.get_fields()])
+print(Post)
+
+print([field[1].__dict__ for field in User.get_fields()])
+print([field[1].__dict__ for field in Post.get_fields()])
+User.drop_table()
+Post.drop_table()
 User.create_table()
 Post.create_table()
+
+user1 = User(name='user1', email='email1@mail.ru')
+print(user1.__dict__)
+print(User.get_fields_dict())
+
+user1.save()
+print(User.get())
+print(user1.__dict__)
+post1 = Post(user_id=user1.id, post='hello')
+print(post1.__dict__)
+
