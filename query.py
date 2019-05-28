@@ -74,7 +74,6 @@ class Query(object):
             fields = ', '.join(f'{field.full_name}' for name, field in fields.items()),
             joins = ' '.join(self._join_template.format(**line) for line in self.join()),
         )
-        print(self._query)
 
         return self
 

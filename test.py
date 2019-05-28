@@ -6,9 +6,6 @@ from field import Field, Integer, String
 session = create_session('test.db')
 Base.set_session(session)
 
-print(Integer)
-print(String(200))
-
 class User(Base):
 
     __tablename__ = 'users'
@@ -47,6 +44,7 @@ class Post(Base):
 
 User.drop_table()
 Post.drop_table()
+
 User.create_table()
 Post.create_table()
 
