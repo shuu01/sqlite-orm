@@ -1,10 +1,18 @@
 import sqlite3
 from field import Field
+from query import Query
 
 def create_session(db):
 
-    return sqlite3.connect(db)
+    def dict_factory(cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
 
+    session = sqlite3.connect(db)
+    session.row_factory = dict_factory
+    return session
 
 class MetaBase(type):
     # metaclass magic, that set table class attribute for every field in this class
@@ -20,14 +28,6 @@ class MetaBase(type):
 
 class Base(metaclass=MetaBase):
 
-    _create_table_template = 'create table if not exists {table} ({fields} {foreign_keys})'
-    _drop_table_template = 'drop table if exists {table}'
-    _insert_template = 'insert into {table}({fields}) values ({values})'
-    _select_template = 'select {fields} from {table} {joins}'
-    _update_template = 'update {table} set {values}'
-    _delete_template = 'delete from {table}'
-    _join_template = 'left join {fk_table} on {fk_table}.{fk} = {pk_table}.{pk}'
-
     _session = None # session inside class
     __tablename__ = None
 
@@ -35,6 +35,15 @@ class Base(metaclass=MetaBase):
         super().__init__()
         for field_name, field_instance in self.__class__.get_fields():
             self.__setattr__(field_name, kwargs.get(field_name, field_instance.default_value))
+
+    def __repr__(self):
+
+        return str(self.get_fields_dict())
+
+    @classmethod
+    def get_tablename(cls):
+
+        return cls.__tablename__
 
     @classmethod
     def set_session(cls, session):
@@ -62,37 +71,25 @@ class Base(metaclass=MetaBase):
                 return name
 
     @classmethod
+    def get_field_by_name(cls, name):
+
+        return cls.__dict__.get(name)
+
+    @classmethod
     def get_fields(cls):
 
         for name, field in cls.__dict__.items():
             if isinstance(field, Field):
                 yield name, field
 
-    @classmethod
-    def get_relationships(cls):
-        for name, field in cls.__dict__.items():
-            if isinstance(fieid, Relationship):
-                yield field
 
-    @classmethod
-    def set_relationship(cls, table, relationship):
-        cls.__setattr__(table.__tablename__, relationship)
+    def get_fields_dict(self):
 
-    @classmethod
-    def get_fields_dict(cls):
-
-        #return self.__dict__
         return {
-            field_name: field_instance.value(getattr(cls, field_name))
-            for field_name, field_instance in cls.get_fields()
+            name: field.__class__.value(getattr(self, name))
+            for name, field in self.__class__.get_fields()
         }
 
-    @classmethod
-    def get_foreign_fields(cls):
-
-        for name, field in cls.get_fields():
-            if field.foreign:
-                yield field
 
     @classmethod
     def get_foreign_field_by_table(cls, table):
@@ -104,69 +101,41 @@ class Base(metaclass=MetaBase):
 
     @classmethod
     def create_table(cls):
-        fields_definition = ', '.join(
-            f'{name} {field.definition}' for name, field in cls.get_fields()
-        )
-        keys = ' '.join(
-            f', {field.foreign_key_definition}' for name, field in cls.get_fields()
-            if field.foreign_key_definition
-        )
-        query = cls._create_table_template.format(
-            table = cls.__tablename__,
-            fields = fields_definition,
-            foreign_keys = keys,
-        )
-        print(query)
+
+        query = Query().create_table(cls).query
         cls.get_cursor().execute(query)
 
 
     @classmethod
     def drop_table(cls):
-        query = cls._drop_table_template.format(
-            table=cls.__tablename__
-        )
-        print(query)
+
+        query = Query().drop_table(cls).query
         cls.get_cursor().execute(query)
 
-    @classmethod
-    def get(cls):
-
-        query = cls._select_template.format(
-            table = cls.__tablename__,
-            fields = ', '.join(f'{cls.__tablename__}.{name}' for name, _ in cls.get_fields()),
-            joins = ' '.join(cls._join_template.format(**line) for line in cls.join()),
-        )
-        print(query)
-        result = cls.get_cursor().execute(query).fetchall()
-        return result
-
-
 
     @classmethod
-    def join(cls):
+    def get(cls, *args):
 
-        for name, field in cls.get_fields():
-            if field._fk and field.table_class == cls:
-                fk_table = field._fk
-                yield {
-                    'fk_table': fk_table.__tablename__,
-                    'fk': fk_table.get_foreign_field_by_table(cls).name,
-                    'pk_table': cls.__tablename__,
-                    'pk': field.name,
-                }
+        query = Query().get(cls, *args)
+        return query
 
+    @classmethod
+    def update(cls, **kwargs):
+
+        query = Query().update(cls, **kwargs)
+        return query
 
     def save(self):
 
-        query = self._insert_template.format(
-            table = self.__tablename__,
-            fields = ', '.join(self.__dict__.keys()),
-            values = ', '.join(
-                f'"{value}"' if value else 'NULL'
-                for value in self.__dict__.values()
-            ),
-        )
-        print(query)
-        self.get_cursor().execute(query)
+        query = Query().save(self).query
+
+        cursor = self.get_cursor()
+        cursor.execute(query)
         self.get_session().commit()
+
+        last_id = cursor.lastrowid
+        for name, field in self.get_fields():
+            if field.primary:
+                self.__setattr__(name, last_id)
+
 

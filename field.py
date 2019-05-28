@@ -15,15 +15,11 @@ class String(metaclass=MetaType):
     def __str__(self):
         return f'Varchar({self.length})'
 
-class Relationship(object):
-
-    def __init__(self, table):
-        self.table = table
-
 class Field(object):
 
     _template_definition = '{type} {not_null} {primary_key} {autoincrement}'
     _template_foreign_definition = 'foreign key ({self_name}) references {table}({field})'
+    _template_cmp = '{field_name} {operator} {other}'
 
     def __init__(self,
         type=None,
@@ -82,3 +78,20 @@ class Field(object):
 
     def set_table_class(self, cls):
         self.table_class = cls
+
+    @property
+    def full_name(self):
+        return '{}.{}'.format(self.tablename, self.name)
+
+    def __repr__(self):
+        return self.full_name
+
+    def _fill_template_cmp(self, field_name, operator, other):
+        return self._template_cmp.format(
+            field_name=field_name,
+            operator=operator,
+            other=repr(other),
+        )
+
+    def __eq__(self, other):
+        return self._fill_template_cmp(self, '=', other)

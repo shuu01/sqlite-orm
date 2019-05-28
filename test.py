@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from base import create_session, Base
-from field import Field, Integer, String, Relationship
+from field import Field, Integer, String
 
 session = create_session('test.db')
 Base.set_session(session)
@@ -45,22 +45,20 @@ class Post(Base):
         not_null=False,
     )
 
-print(Post)
-
-print([field[1].__dict__ for field in User.get_fields()])
-print([field[1].__dict__ for field in Post.get_fields()])
 User.drop_table()
 Post.drop_table()
 User.create_table()
 Post.create_table()
 
 user1 = User(name='user1', email='email1@mail.ru')
-print(user1.__dict__)
-print(User.get_fields_dict())
+print(user1)
 
 user1.save()
-print(User.get())
-print(user1.__dict__)
-post1 = Post(user_id=user1.id, post='hello')
-print(post1.__dict__)
+print(user1)
 
+User.update(name = 'user2').filter(User.name == 'user1').call()
+result = User.get('id', 'name').filter(User.name == 'user2').call()
+print(result)
+
+post1 = Post(user_id=user1.id, post='hello')
+post1.save()
