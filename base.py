@@ -125,6 +125,14 @@ class Base(metaclass=MetaBase):
         query = Query().update(cls, **kwargs)
         return query
 
+
+    @classmethod
+    def delete(cls):
+
+        query = Query().delete(cls)
+        return query
+
+
     def save(self):
 
         query = Query().save(self).query

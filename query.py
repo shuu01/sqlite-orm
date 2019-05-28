@@ -54,8 +54,16 @@ class Query(object):
     def get(self, cls, *args):
 
         self._cls = cls
+        fk_fields = {}
 
-        all_fields = {name: field for name, field in cls.get_fields()}
+        for name, field in cls.get_fields():
+            if field._fk and field.table_class == cls:
+                fk_table = field._fk
+                fk_fields = dict(fk_table.get_fields())
+
+        all_fields = dict(cls.get_fields())
+        all_fields.update(fk_fields)
+
         fields = {name: field for name, field in all_fields.items() if name in args}
 
         if not fields:
@@ -90,6 +98,13 @@ class Query(object):
 
         return self
 
+    def delete(self, cls):
+
+        self._cls = cls
+        self._query = self._delete_template.format(
+            table = cls.__tablename__,
+        )
+        return self
 
     def join(self):
 

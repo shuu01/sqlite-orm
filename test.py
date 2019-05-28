@@ -57,8 +57,15 @@ user1.save()
 print(user1)
 
 User.update(name = 'user2').filter(User.name == 'user1').call()
+print(User.get().call())
+
 result = User.get('id', 'name').filter(User.name == 'user2').call()
 print(result)
 
 post1 = Post(user_id=user1.id, post='hello')
 post1.save()
+print(Post.get().call())
+print(User.get().call())
+
+User.delete().filter(User.name == 'user2').call()
+print(User.get().call())
