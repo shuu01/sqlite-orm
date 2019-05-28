@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from base import create_session, Base
-from field import Field, Integer, String
+from sqlite_orm import Base, Field, Integer, String, create_session
 
 session = create_session('test.db')
 Base.set_session(session)

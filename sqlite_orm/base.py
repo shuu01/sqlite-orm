@@ -1,18 +1,6 @@
-import sqlite3
-from field import Field
-from query import Query
+from .field import Field
+from .query import Query
 
-def create_session(db):
-
-    def dict_factory(cursor, row):
-        d = {}
-        for idx, col in enumerate(cursor.description):
-            d[col[0]] = row[idx]
-        return d
-
-    session = sqlite3.connect(db)
-    session.row_factory = dict_factory
-    return session
 
 class MetaBase(type):
     # metaclass magic, that set table class attribute for every field in this class
