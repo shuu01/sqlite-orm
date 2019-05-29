@@ -2,7 +2,7 @@
 
 Simple sqlite-based orm written for educational purpose.
 
-Inspired by https://github.com/
+Inspired by https://github.com/eaxdev/SQLite-ORM
 
 - Supports select, delete, update queries.
 - Supports create and delete queries.
