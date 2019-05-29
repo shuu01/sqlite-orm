@@ -19,24 +19,29 @@ class Base(metaclass=MetaBase):
     _session = None # session inside class
     __tablename__ = None
 
+
     def __init__(self, **kwargs):
         super().__init__()
         for field_name, field_instance in self.__class__.get_fields():
             self.__setattr__(field_name, kwargs.get(field_name, field_instance.default_value))
 
+
     def __repr__(self):
 
         return str(self.get_fields_dict())
+
 
     @classmethod
     def get_tablename(cls):
 
         return cls.__tablename__
 
+
     @classmethod
     def set_session(cls, session):
 
         cls._session = session
+
 
     @classmethod
     def get_session(cls):
@@ -46,10 +51,12 @@ class Base(metaclass=MetaBase):
         else:
             raise Exception('Cannot get session.')
 
+
     @classmethod
     def get_cursor(cls):
 
         return cls.get_session().cursor()
+
 
     @classmethod
     def get_field_name(cls, field):
@@ -58,10 +65,12 @@ class Base(metaclass=MetaBase):
             if instance is field:
                 return name
 
+
     @classmethod
     def get_field_by_name(cls, name):
 
         return cls.__dict__.get(name)
+
 
     @classmethod
     def get_fields(cls):
@@ -69,14 +78,6 @@ class Base(metaclass=MetaBase):
         for name, field in cls.__dict__.items():
             if isinstance(field, Field):
                 yield name, field
-
-
-    def get_fields_dict(self):
-
-        return {
-            name: field.__class__.value(getattr(self, name))
-            for name, field in self.__class__.get_fields()
-        }
 
 
     @classmethod
@@ -107,6 +108,7 @@ class Base(metaclass=MetaBase):
         query = Query().get(cls, *args)
         return query
 
+
     @classmethod
     def update(cls, **kwargs):
 
@@ -124,10 +126,13 @@ class Base(metaclass=MetaBase):
     def save(self):
 
         query = Query().save(self).query
-
-        cursor = self.get_cursor()
-        cursor.execute(query)
-        self.get_session().commit()
+        try:
+            cursor = self.get_cursor()
+            cursor.execute(query)
+            self.get_session().commit()
+        except Exception as e:
+            print(f'sqlite error: {e}')
+            return
 
         last_id = cursor.lastrowid
         for name, field in self.get_fields():
@@ -135,3 +140,9 @@ class Base(metaclass=MetaBase):
                 self.__setattr__(name, last_id)
 
 
+    def get_fields_dict(self):
+
+        return {
+            name: field.__class__.value(getattr(self, name))
+            for name, field in self.__class__.get_fields()
+        }

@@ -8,12 +8,14 @@ class Query(object):
     _delete_template = 'delete from {table}'
     _join_template = 'left join {fk_table} on {fk_table}.{fk} = {pk_table}.{pk}'
 
+
     def __init__(self):
 
         #super().__init__()
         self._query = ''
         self._filter_str = ''
         self._cls = None
+
 
     @property
     def query(self):
@@ -25,6 +27,7 @@ class Query(object):
         print(f'query: {query}')
 
         return query
+
 
     def create_table(self, cls):
 
@@ -43,6 +46,7 @@ class Query(object):
 
         return self
 
+
     def drop_table(self, cls):
 
         self._query = self._drop_table_template.format(
@@ -50,6 +54,7 @@ class Query(object):
         )
 
         return self
+
 
     def get(self, cls, *args):
 
@@ -77,10 +82,17 @@ class Query(object):
 
         return self
 
+
     def call(self):
 
-        return self._cls.get_cursor().execute(self.query).fetchall()
-        self._cls.get_session().commit()
+        try:
+            result = self._cls.get_cursor().execute(self.query).fetchall()
+            self._cls.get_session().commit()
+        except Exception as e:
+            print(f'sqlite error: {e}')
+
+        return result
+
 
     def update(self, cls, **kwargs):
 
@@ -97,6 +109,7 @@ class Query(object):
 
         return self
 
+
     def delete(self, cls):
 
         self._cls = cls
@@ -104,6 +117,7 @@ class Query(object):
             table = cls.__tablename__,
         )
         return self
+
 
     def join(self):
 
@@ -119,10 +133,12 @@ class Query(object):
                     'pk': field.name,
                 }
 
+
     def filter(self, condition):
 
         self._filter_str = str(condition)
         return self
+
 
     def save(self, cls):
 
