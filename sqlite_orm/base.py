@@ -105,6 +105,8 @@ class Base(metaclass=MetaBase):
     @classmethod
     def get(cls, *args):
 
+        args = [f'{cls.__tablename__}.{arg}' for arg in args]
+
         query = Query().get(cls, *args)
         return query
 
