@@ -77,34 +77,34 @@ create user
 look inside user object
 
     print(user1)
-    >>> {'id': 'NULL', 'name': 'user1', 'email': 'email1@mail.ru'}
+    >>> {'users.id': users.id, 'users.name': users.name, 'users.email': users.email}
 
 save user into database
 
     user1.save()
     print(user1)
-    >>> {'id': 1, 'name': 'user1', 'email': 'email1@mail.ru'}
+    >>> {'users.id': users.id, 'users.name': users.name, 'users.email': users.email}
 
 update user
 
     User.update(name = 'user2').filter(User.name == 'user1').call()
     print(User.get().call())
-    >>> [{'id': None, 'name': 'user2', 'email': 'email1@mail.ru', 'user_id': None, 'post': None}]
+    >>> [{'users_id': 1, 'users_name': 'user2', 'users_email': 'email1@mail.ru', 'posts_id': None, 'posts_user_id': None, 'posts_post': None}]
 
 select user.id and user.name where name = 'user2'
 
     result = User.get('id', 'name').filter(User.name == 'user2').call()
     print(result)
-    >>> [{'id': None, 'name': 'user2'}]
+    >>> [{'users_id': 1, 'users_name': 'user2'}]
 
 create post
 
     post1 = Post(user_id=user1.id, post='hello')
     post1.save()
     print(Post.get().call())
-    >>> [{'id': 1, 'user_id': 1, 'post': 'hello'}]
+    >>> [{'posts_id': 1, 'posts_user_id': 1, 'posts_post': 'hello'}]
     print(User.get().call())
-    >>> [{'id': 1, 'name': 'user2', 'email': 'email1@mail.ru', 'user_id': 1, 'post': 'hello'}]
+    >>> [{'users_id': 1, 'users_name': 'user2', 'users_email': 'email1@mail.ru', 'posts_id': 1, 'posts_user_id': 1, 'posts_post': 'hello'}]
 
 delete user with name = user2
 
