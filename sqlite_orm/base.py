@@ -139,10 +139,10 @@ class Base(metaclass=MetaBase):
             if field.primary:
                 self.__setattr__(name, last_id)
 
-
+    @classmethod
     def get_fields_dict(self):
 
         return {
-            name: field.__class__.value(getattr(self, name))
-            for name, field in self.__class__.get_fields()
+            field.full_name: field.__class__.value(getattr(self, name))
+            for name, field in self.get_fields()
         }

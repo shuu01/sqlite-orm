@@ -64,9 +64,9 @@ class Query(object):
         for name, field in cls.get_fields():
             if field._fk and field.table_class == cls:
                 fk_table = field._fk
-                fk_fields = dict(fk_table.get_fields())
+                fk_fields = dict(fk_table.get_fields_dict())
 
-        all_fields = dict(cls.get_fields())
+        all_fields = dict(cls.get_fields_dict())
         all_fields.update(fk_fields)
 
         fields = {name: field for name, field in all_fields.items() if name in args}
@@ -76,7 +76,7 @@ class Query(object):
 
         self._query = self._select_template.format(
             table = cls.__tablename__,
-            fields = ', '.join(f'{field.full_name}' for name, field in fields.items()),
+            fields = ', '.join(f'{name} as {field.as_name}' for name, field in fields.items()),
             joins = ' '.join(self._join_template.format(**line) for line in self.join()),
         )
 

@@ -96,7 +96,12 @@ class Field(object):
 
     @property
     def full_name(self):
-        return '{}.{}'.format(self.tablename, self.name)
+        return f'{self.tablename}.{self.name}'
+
+
+    @property
+    def as_name(self):
+        return f'{self.tablename}_{self.name}'
 
 
     def _fill_template_cmp(self, field_name, operator, other):
